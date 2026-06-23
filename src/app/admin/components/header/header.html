@@ -1,0 +1,23 @@
+<header class="p-3">
+  <div class="flex justify-between items-center">
+    <div>
+      <nav class="flex gap-1.5">
+        <a routerLink="/local" class="underline underline-offset-4 p-1"
+           routerLinkActive="decoration-red-400 decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Check-in</a>
+        <a routerLink="/admin" class="underline underline-offset-4 p-1"
+           routerLinkActive="decoration-red-400 decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Dashboard</a>
+        <a routerLink="/admin/employees" class="underline underline-offset-4 p-1"
+           routerLinkActive="decoration-red-400 decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Employees</a>
+        <a routerLink="/admin/history" class="underline underline-offset-4 p-1"
+           routerLinkActive="decoration-red-400 decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">History</a>
+      </nav>
+    </div>
+    <div>
+      <p-button icon="pi pi-sign-out" variant="outlined" severity="danger" label="Salir" (click)="logOut()"></p-button>
+    </div>
+  </div>
+</header>

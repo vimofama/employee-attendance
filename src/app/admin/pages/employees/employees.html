@@ -1,0 +1,101 @@
+<!-- Main Content Area -->
+<main class="min-h-screen">
+  <section class="p-margin-desktop max-w-container-max mx-auto">
+    <p-toast/>
+    <p-confirmDialog/>
+    <!-- Header Section -->
+    <div class="flex items-center justify-end my-2">
+      <div>
+        <p-drawer [(visible)]="visible" header="Agregar Nuevo Empleado" position="right">
+          <app-new-employee-form (created)="onEmployeeCreated()" (cancel)="onCancel()"/>
+        </p-drawer>
+        <p-button label="Nuevo Empleado" icon="pi pi-plus" variant="outlined" (click)="visible.set(true)">
+        </p-button>
+      </div>
+    </div>
+    <!-- Table Section -->
+    <p-table
+      #dt
+      [value]="employees()"
+      [paginator]="true"
+      [rows]="10"
+    >
+      <ng-template pTemplate="header">
+        <tr class="font-bold">
+          <th>Nombre del Empleado</th>
+          <th>Código ID</th>
+          <th>Fecha Creación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-emp>
+        <tr>
+          <td class="flex items-center gap-2">
+            <p-avatar image="https://ui-avatars.com/api/?name={{emp.name}}&background=fff8ef&color=1d1b16"></p-avatar>
+            <span>{{ emp.name }}</span>
+          </td>
+          <td>{{ emp.code }}</td>
+          <td>{{ emp.created_at | date:'mediumDate' }}</td>
+          <td>
+            <span class="px-3 py-1 rounded-full font-label-bold text-[10px] uppercase tracking-tighter"
+                  [class.bg-green-100]="emp.is_active" [class.text-green-800]="emp.is_active"
+                  [class.bg-surface-container-highest]="!emp.is_active"
+                  [class.text-secondary]="!emp.is_active">{{ emp.is_active ? 'Activo' : 'Inactivo' }}</span>
+          </td>
+          <td>
+            <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="showDialog(emp)"></p-button>
+            <p-button *ngIf="emp.is_active === 1" icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                      (click)="deleteEmployee(emp.id)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+  <p-dialog header="Editar Empleado" [modal]="true" [(visible)]="visibleDialog">
+    <form [formGroup]="form" class="p-8 grow space-y-8 overflow-y-auto">
+      <div>
+        <div class="space-y-2">
+          <label class="font-bold block mb-2">Nombre
+            Completo</label>
+          <input pInputText formControlName="name" autocomplete="off"
+                 type="text"/>
+        </div>
+
+        <div class="flex-auto">
+          <label for="scheduleStart" class="font-bold block mb-2"> Hora de Entrada </label>
+          <p-datePicker inputId="scheduleStart" formControlName="schedule_start" [timeOnly]="true"/>
+        </div>
+
+        <div class="flex-auto">
+          <label for="scheduleEnd" class="font-bold block mb-2"> Hora de Salida </label>
+          <p-datePicker inputId="scheduleEnd" formControlName="schedule_end" [timeOnly]="true"/>
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-bold block mb-2">Minutos de
+            tolerancia</label>
+          <p-input-number formControlName="late_tolerance" autocomplete="off"/>
+        </div>
+
+        <div class="mt-2 flex flex-wrap gap-4">
+          <div class="flex items-center">
+            <p-radioButton [value]="1" formControlName="is_active"/>
+            <label for="ingredient1" class="ml-2">Activo</label>
+          </div>
+          <div class="flex items-center">
+            <p-radioButton [value]="0" formControlName="is_active" />
+            <label for="ingredient2" class="ml-2">Pasivo</label>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col space-y-2">
+        <button pButton type="submit" class="w-max" (click)="onSubmit($event)">
+          Guardar Empleado
+        </button>
+        <p-button label="Cancelar" class="w-max" severity="danger" variant="outlined" (click)="onCancel()">
+        </p-button>
+      </div>
+    </form>
+  </p-dialog>
+</main>
