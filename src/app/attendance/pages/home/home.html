@@ -1,0 +1,98 @@
+<div id="kiosk-container"
+     class="bg-[#fff8ef] min-h-[calc(100vh-140px)] flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden select-none">
+  <!--  {/* Absolute vintage retro-grid overlay pattern */}-->
+  <div
+    class="absolute inset-0 bg-[linear-gradient(to_right,#cc141407_1px,transparent_1px),linear-gradient(to_bottom,#cc141407_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none"></div>
+
+  <header class="mb-8 text-center relative z-10">
+    <h1 class="font-serif text-4xl md:text-5xl font-black text-[#1d1b16] uppercase tracking-wider mb-2">
+      PABS <span class="text-on-primary-container font-black italic">BURGERS</span>
+    </h1>
+    <p class="font-sans font-bold text-[10px] uppercase tracking-[0.25em] text-secondary">
+      Control de Asistencia del Personal
+    </p>
+  </header>
+
+  <!--  {/* Main Kiosk Frame - Designed like a physical timeclock rack */}-->
+  <main
+    class="w-full max-w-2xl bg-white border-2 border-[#1d1b16] p-8 md:p-10 relative shadow-[8px_8px_0px_0px_#1d1b16] rounded-none z-10">
+    <!--    {/* Vintage red brand label ribbon */}-->
+    <div class="absolute left-0 top-10 bottom-10 w-2 bg-primary-container"></div>
+
+    <section class="space-y-8 relative">
+      <p-button size="small" icon="pi pi-sign-out" class="absolute right-0 top-0" severity="secondary" (click)="logout()"></p-button>
+      <!--      {/* PIN Input Panel */}-->
+      <div class="flex flex-col items-center gap-4">
+        <label for="kiosk-pin-input"
+               class="font-serif text-xl md:text-2xl text-[#1d1b16] font-black tracking-tight uppercase">
+          Ingresa tu Código Personal
+        </label>
+
+        <div class="relative w-full max-w-sm">
+          <input
+            [formField]="f.pinCode"
+            id="kiosk-pin-input"
+            type="text"
+            placeholder="0102"
+            class="w-full h-16 text-center text-2xl font-bold border-2 border-[#1d1b16] focus:border-primary-container focus:ring-4 focus:ring-primary-container/10 focus:outline-none bg-[#fff8ef] text-[#1d1b16] transition-all font-mono placeholder:text-slate-400 placeholder:text-lg rounded-none"
+          />
+        </div>
+      </div>
+
+      <!--      {/* Large Tactile Action Control Buttons */}-->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+        <!--        {/* Clock-in */}-->
+        <button
+          [disabled]="f().submitting()"
+          (click)="onSubmit($event, 'WORK_START')"
+          class="group h-28 flex flex-col items-center justify-center gap-3 border-2 border-[#1d1b16] bg-white text-[#1d1b16] hover:bg-green-400 hover:text-white disabled:opacity-40 disabled:pointer-events-none active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all rounded-none shadow-[4px_4px_0px_0px_#1d1b16] active:shadow-none"
+        >
+          <i class="pi pi-stopwatch text-[2rem] text-primary-container group-hover:text-white transition-colors"></i>
+          <span class="font-sans font-bold text-[10px] uppercase tracking-wider">Entrada</span>
+        </button>
+
+        <!--        {/* Break start */}-->
+        <button
+          [disabled]="f().submitting()"
+          (click)="onSubmit($event, 'BREAK_START')"
+          class="group h-28 flex flex-col items-center justify-center gap-3 border-2 border-[#1d1b16] bg-white text-[#1d1b16] hover:bg-amber-500 hover:text-white disabled:opacity-40 disabled:pointer-events-none active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all rounded-none shadow-[4px_4px_0px_0px_#1d1b16] active:shadow-none"
+        >
+          <i class="pi pi-pause text-[2rem] text-amber-600 group-hover:text-white transition-colors"></i>
+          <span class="font-sans font-bold text-[10px] uppercase tracking-wider">Inicio Break</span>
+        </button>
+
+        <!--        {/* Break end */}-->
+        <button
+          [disabled]="f().submitting()"
+          (click)="onSubmit($event, 'BREAK_END')"
+          class="group h-28 flex flex-col items-center justify-center gap-3 border-2 border-[#1d1b16] bg-white text-[#1d1b16] hover:bg-blue-600 hover:text-white disabled:opacity-40 disabled:pointer-events-none active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all rounded-none shadow-[4px_4px_0px_0px_#1d1b16] active:shadow-none"
+        >
+          <i class="pi pi-play text-[2rem] text-blue-600 group-hover:text-white transition-colors"></i>
+          <span class="font-sans font-bold text-[10px] uppercase tracking-wider">Fin Break</span>
+        </button>
+
+        <!--        {/* Clock-out */}-->
+        <button
+          [disabled]="f().submitting()"
+          (click)="onSubmit($event, 'WORK_END')"
+          class="group h-28 flex flex-col items-center justify-center gap-3 border-2 border-[#1d1b16] bg-white text-[#1d1b16] hover:bg-red-700 hover:text-white disabled:opacity-40 disabled:pointer-events-none active:translate-x-0.5 active:translate-y-0.5 cursor-pointer transition-all rounded-none shadow-[4px_4px_0px_0px_#1d1b16] active:shadow-none"
+        >
+          <i class="pi pi-sign-out text-[2rem] text-red-600 group-hover:text-white transition-colors"></i>
+          <span class="font-sans font-bold text-[10px] uppercase tracking-wider">Salida</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!--  {/* Visual Context Footer */}-->
+  <footer class="mt-8 text-center space-y-3">
+    <div class="flex flex-col items-center">
+      <span class="font-sans font-bold text-slate-500 uppercase text-[9px] tracking-wider">Hora Actual</span>
+      <span
+        class="font-mono text-xl font-bold tabular-nums text-primary-container">{{ time() | date: 'mediumTime' }}</span>
+    </div>
+    <p class="text-[8px] text-slate-505 max-w-xs mx-auto leading-relaxed">
+      Uso exclusivo para personal autorizado. Todos los eventos se registran con firma de tiempo segura para nómina.
+    </p>
+  </footer>
+</div>
