@@ -6,6 +6,13 @@
   "plugins": {
     "sql": {
       "preload": ["sqlite:test.db"]
+    },
+    "updater": {
+      "windows": {
+        "installMode": "passive"
+      },
+      "endpoints": ["https://raw.githubusercontent.com/vimofama/employee-control/main/latest.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ4MzYxN0REMkJDMEEyQjYKUldTMm9zQXIzUmMyMkJKY2JlckFPVVBnMXhFYmRRU04vNTRsRUtUSUdTb09KREl2YzlFVHJrdXIK"
     }
   },
   "build": {
@@ -30,6 +37,7 @@
     }
   },
   "bundle": {
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [
