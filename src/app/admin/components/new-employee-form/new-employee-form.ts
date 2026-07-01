@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { signal } from '@angular/core';
 import { form, required, maxLength, FormField } from '@angular/forms/signals';
 import { EmployeeService } from '@app/admin/service/employee-service';
@@ -22,13 +22,14 @@ interface CreateEmployeeModel {
 export class NewEmployeeForm {
   private readonly employeeService = inject(EmployeeService);
 
-  @Output() created = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
+  created = output();
+  cancel = output();
+  date = Date.now();
 
   model = signal<CreateEmployeeModel>({
     name: '',
-    scheduleStart: '',
-    scheduleEnd: '',
+    scheduleStart: `${getHours(this.date).toString().padStart(2, '0')}:${getMinutes(this.date).toString().padStart(2, '0')}`,
+    scheduleEnd: `${getHours(this.date).toString().padStart(2, '0')}:${getMinutes(this.date).toString().padStart(2, '0')}`,
     lateTolerance: 5,
   });
 

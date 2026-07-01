@@ -6,6 +6,7 @@ import {
   ReportConfig,
 } from '@app/shared/interfaces/types';
 import {
+  addMinutes,
   differenceInMilliseconds,
   eachDayOfInterval,
   endOfDay,
@@ -16,6 +17,7 @@ import {
   parseISO,
   startOfMonth,
 } from 'date-fns';
+import bcrypt from 'bcryptjs';
 import { DatabaseService } from '@app/shared/service/database';
 import { EmployeeService } from '@app/admin/service/employee-service';
 import { AttendanceService } from '@app/attendance/service/attendance-service';
@@ -43,7 +45,6 @@ export class DashboardService {
    * Si no se especifica una fecha, calcula el resumen del día actual.
    */
   async getDailyDashboard(targetDate: Date = new Date()): Promise<DailySummary[]> {
-    // Formateamos la fecha a 'yyyy-MM-dd' usando date-fns para consultar en SQLite
     const dateStr = format(targetDate, 'yyyy-MM-dd');
 
     const activeEmployees = await this.employeeService.getActiveEmployees();
@@ -52,7 +53,7 @@ export class DashboardService {
     for (const emp of activeEmployees) {
       const logs = await this.dbService.db.select<AttendanceLog[]>(
         `SELECT * FROM attendance_logs WHERE employee_id = $1 AND occurred_at LIKE $2 ORDER BY occurred_at ASC`,
-        [emp.id, `${dateStr}%`]
+        [emp.id, `${dateStr}%`],
       );
 
       const state = this.deriveState(logs);
@@ -64,7 +65,7 @@ export class DashboardService {
         state,
         workedMs,
         formattedWorkedHours: this.formatMsToHoursMinutes(workedMs),
-        totalLateMinutes: lateMinutes
+        totalLateMinutes: lateMinutes,
       });
     }
 
@@ -146,64 +147,32 @@ export class DashboardService {
       [employeeId, dateStr],
     );
 
+    if (logs.length === 0) return;
     const lastEvent = logs[logs.length - 1];
 
-    // date-fns: parsea la fecha y obtén el final del día (23:59:59.999)
-    const dateObj = parseISO(dateStr);
-    const targetTime = formatISO(endOfDay(dateObj));
+    const empLogs = await this.dbService.db.select<Employee[]>(
+      'SELECT * FROM employees WHERE id = $1',
+      [employeeId],
+    );
+    if (!empLogs[0]) return;
+    const emp = empLogs[0];
+
+    const [endHoursStr, endMinutesStr] = emp.schedule_end.split(':');
+    const workEndTimeStr = `${dateStr}T${endHoursStr}:${endMinutesStr}:00`;
 
     if (lastEvent.event_type === 'BREAK_START') {
+      const breakStartTime = parseISO(lastEvent.occurred_at);
+      const breakEndTimeObj = addMinutes(breakStartTime, 60);
+      const breakEndTimeStr = format(breakEndTimeObj, "yyyy-MM-dd'T'HH:mm:ss");
+
       await this.dbService.db.execute(
         `INSERT INTO attendance_logs (employee_id, event_type, occurred_at, is_auto_close) VALUES ($1, 'BREAK_END', $2, 1)`,
-        [employeeId, targetTime],
+        [employeeId, breakEndTimeStr],
       );
     }
-
     await this.dbService.db.execute(
       `INSERT INTO attendance_logs (employee_id, event_type, occurred_at, is_auto_close) VALUES ($1, 'WORK_END', $2, 1)`,
-      [employeeId, targetTime],
-    );
-  }
-
-  // ==========================================
-  // EDICIÓN ADMIN
-  // ==========================================
-
-  async adminEditLog(
-    logId: number,
-    newTimeStr: string,
-    adminOverrideAutoClose = false,
-  ): Promise<void> {
-    const logs = await this.dbService.db.select<AttendanceLog[]>(
-      'SELECT * FROM attendance_logs WHERE id = $1',
-      [logId],
-    );
-    if (!logs[0]) throw new Error('Registro no encontrado');
-    const log = logs[0];
-
-    if (log.is_auto_close === 1 && !adminOverrideAutoClose) {
-      throw new Error(
-        'Requiere confirmación explícita para editar un registro de cierre automático.',
-      );
-    }
-
-    let lateMinutesUpdate = log.late_minutes;
-
-    if (log.event_type === 'WORK_START') {
-      const empLogs = await this.dbService.db.select<Employee[]>(
-        'SELECT * FROM employees WHERE id = $1',
-        [log.employee_id],
-      );
-      const emp = empLogs[0];
-
-      const newCheckInTime = parseISO(newTimeStr);
-      // Reutiliza la lógica del attendance.service
-      lateMinutesUpdate = this.attendanceService.calculateLateness(emp, newCheckInTime);
-    }
-
-    await this.dbService.db.execute(
-      `UPDATE attendance_logs SET occurred_at = $1, late_minutes = $2 WHERE id = $3`,
-      [newTimeStr, lateMinutesUpdate, logId],
+      [employeeId, workEndTimeStr],
     );
   }
 
@@ -217,22 +186,19 @@ export class DashboardService {
       weeks,
       defaultBaseHours,
       employeeBaseExceptions = {},
-      overtimeMultiplier = 2
+      overtimeMultiplier = 2,
     } = config;
 
     const activeEmployees = await this.employeeService.getActiveEmployees();
     const summaries: OvertimeSummary[] = [];
 
-    // 1. Definir el rango del mes
     const monthStart = startOfMonth(new Date(year, month - 1)); // month - 1 porque date-fns / JS usa 0-11
     const monthEnd = endOfMonth(monthStart);
 
-    // Obtener todos los días del mes
     const allDaysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-    // 2. Filtrar días si se especificaron semanas específicas
-    const validDays = allDaysInMonth.filter(date => {
-      if (!weeks || weeks.length === 0) return true; // Si no hay semanas, incluye todo el mes
+    const validDays = allDaysInMonth.filter((date) => {
+      if (!weeks || weeks.length === 0) return true;
 
       const dayOfMonth = getDate(date);
       let weekNum: 1 | 2 | 3 | 4;
@@ -245,18 +211,15 @@ export class DashboardService {
       return weeks.includes(weekNum);
     });
 
-    // Convertimos las fechas válidas a strings 'yyyy-MM-dd' para buscar en la base de datos
-    const validDateStrings = validDays.map(date => format(date, 'yyyy-MM-dd'));
+    const validDateStrings = validDays.map((date) => format(date, 'yyyy-MM-dd'));
 
-    // 3. Calcular para cada empleado
     for (const emp of activeEmployees) {
       let totalWorkedMs = 0;
 
-      // Iterar solo por los días que pasaron el filtro de semanas
       for (const dateStr of validDateStrings) {
         const logs = await this.dbService.db.select<AttendanceLog[]>(
           `SELECT * FROM attendance_logs WHERE employee_id = $1 AND occurred_at LIKE $2 ORDER BY occurred_at ASC`,
-          [emp.id, `${dateStr}%`]
+          [emp.id, `${dateStr}%`],
         );
 
         if (logs.length > 0) {
@@ -265,14 +228,11 @@ export class DashboardService {
         }
       }
 
-      // 4. Convertir milisegundos a horas (redondeado a 2 decimales para evitar números infinitos)
       const horasMesExactas = totalWorkedMs / (1000 * 60 * 60);
       const horasMes = Math.round(horasMesExactas * 100) / 100;
 
-      // 5. Determinar la base del mes (verificar si este empleado tiene una excepción)
       const baseMes = employeeBaseExceptions[emp.code] || defaultBaseHours;
 
-      // 6. Aplicar las fórmulas del Excel
       const horasExtras = horasMes - baseMes;
       const valor = horasExtras * overtimeMultiplier;
 
@@ -281,10 +241,100 @@ export class DashboardService {
         horasMes,
         baseMes,
         horasExtras,
-        valor
+        valor,
       });
     }
 
     return summaries;
+  }
+
+  // ==========================================
+  // GESTIÓN DE SEGURIDAD Y CONFIGURACIÓN
+  // ==========================================
+
+  /**
+   * Actualiza la contraseña de un usuario encriptándola con bcryptjs.
+   * @param username El nombre de usuario único ('admin' o 'local')
+   * @param plainPassword La nueva contraseña en texto plano desde el formulario
+   */
+  async updatePassword(username: 'admin' | 'local', plainPassword: string): Promise<void> {
+    const users = await this.dbService.db.select<{ id: number }[]>(
+      'SELECT id FROM users WHERE username = $1',
+      [username],
+    );
+
+    if (!users || users.length === 0) {
+      throw new Error(`El usuario con el nombre de cuenta '${username}' no existe.`);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(plainPassword, salt);
+
+    await this.dbService.db.execute('UPDATE users SET password_hash = $1 WHERE username = $2', [
+      hashedPassword,
+      username,
+    ]);
+  }
+
+  // ==========================================
+  // CONTROL DE ASISTENCIA PERSONALIZADO
+  // ==========================================
+
+  /**
+   * Obtiene todos los logs de un empleado específico en una fecha concreta.
+   */
+  async getEmployeeLogsByDate(employeeId: number, dateStr: string): Promise<any[]> {
+    return await this.dbService.db.select<any[]>(
+      `SELECT l.*, e.name as employee_name, e.schedule_start, e.late_tolerance
+     FROM attendance_logs l
+     JOIN employees e ON l.employee_id = e.id
+     WHERE l.employee_id = $1 AND l.occurred_at LIKE $2
+     ORDER BY l.occurred_at ASC`,
+      [employeeId, `${dateStr}%`],
+    );
+  }
+
+  /**
+   * Modifica la fecha/hora de un registro recalculando penalizaciones de retraso si aplica.
+   */
+  async updateLogTime(logId: number, newTimeStr: string): Promise<void> {
+    const logs = await this.dbService.db.select<any[]>(
+      `SELECT l.*, e.schedule_start, e.late_tolerance
+     FROM attendance_logs l
+     JOIN employees e ON l.employee_id = e.id
+     WHERE l.id = $1`,
+      [logId],
+    );
+
+    if (!logs[0]) throw new Error('Registro no encontrado');
+    const log = logs[0];
+    let lateMinutesUpdate = log.late_minutes;
+
+    if (log.event_type === 'WORK_START') {
+      const empMock: Employee = {
+        id: log.employee_id,
+        name: '',
+        code: '',
+        schedule_start: log.schedule_start,
+        schedule_end: '',
+        late_tolerance: log.late_tolerance,
+        created_at: '',
+        is_active: 1,
+      };
+      const newCheckInTime = parseISO(newTimeStr);
+      lateMinutesUpdate = this.attendanceService.calculateLateness(empMock, newCheckInTime);
+    }
+
+    await this.dbService.db.execute(
+      `UPDATE attendance_logs SET occurred_at = $1, late_minutes = $2 WHERE id = $3`,
+      [newTimeStr, lateMinutesUpdate, logId],
+    );
+  }
+
+  /**
+   * Elimina un log de asistencia permanentemente.
+   */
+  async deleteLog(logId: number): Promise<void> {
+    await this.dbService.db.execute('DELETE FROM attendance_logs WHERE id = $1', [logId]);
   }
 }

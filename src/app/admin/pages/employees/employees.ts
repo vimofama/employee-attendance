@@ -4,7 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import type { Employee } from '@app/shared/interfaces/types';
 import { EmployeeService } from '@app/admin/service/employee-service';
 import { NewEmployeeForm } from '@app/admin/components/new-employee-form/new-employee-form';
-import { Button, ButtonDirective } from 'primeng/button';
+import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -32,7 +32,6 @@ import { getHours } from 'date-fns';
     ConfirmDialog,
     Dialog,
     FormsModule,
-    ButtonDirective,
     DatePicker,
     InputNumber,
     InputText,
@@ -75,12 +74,12 @@ export class Employees implements OnInit {
       })
       .catch((err) => {
         this.loading.set(false);
-        console.log('Failed loading employees', err);
+        this.showToast('error', 'Error', `Error al cargar empleados: ${err.message}`);
       });
   }
 
   onEmployeeCreated() {
-    this.messageService.add({ severity: 'info', summary: 'Info', detail: 'Usuario creado' });
+    this.showToast('success', 'Éxito', 'Usuario creado correctamente');
     this.visible.set(false);
     this.loadEmployees();
   }
@@ -108,21 +107,11 @@ export class Employees implements OnInit {
         this.employeeService
           .deleteEmployee(id)
           .then(() => {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Info',
-              detail: 'Usuario eliminado',
-              life: 3000,
-            });
+            this.showToast('info', 'Info', 'Usuario eliminado');
             this.loadEmployees();
           })
           .catch((err) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error al eliminar, ${err}`,
-              life: 6000,
-            });
+            this.showToast('error', 'Error', `Error al eliminar: ${err.message}`);
           });
       },
     });
@@ -151,7 +140,7 @@ export class Employees implements OnInit {
   }
 
   onEmployeeUpdated() {
-    this.messageService.add({ severity: 'info', summary: 'Info', detail: 'Usuario actualizado' });
+    this.showToast('success', 'Éxito', 'Usuario actualizado correctamente');
     this.visibleDialog.set(false);
     this.selectedEmployee.set(null);
     this.loadEmployees();
@@ -182,7 +171,7 @@ export class Employees implements OnInit {
             this.onEmployeeUpdated();
           })
           .catch((err: Error) => {
-            alert(`Error al actualizar: ${err.message}`);
+            this.showToast('error', 'Error', `Error al actualizar: ${err.message}`);
           });
       }
     }
@@ -192,5 +181,9 @@ export class Employees implements OnInit {
     const hour = getHours(date);
     const minutes = date.getMinutes();
     return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  private showToast(severity: string, summary: string, detail: string) {
+    this.messageService.add({ severity, summary, detail, life: 3000 });
   }
 }

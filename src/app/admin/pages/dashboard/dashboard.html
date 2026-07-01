@@ -1,61 +1,84 @@
-<div class="card">
-  <div class="font-semibold text-xl mb-4">Resumen Diario de Empleados</div>
-  <p-table [rows]="10" [paginator]="true" [value]="dailySummary()" dataKey="employee.id" [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
-    <ng-template #caption>
-      <button pButton icon="pi pi-fw {{ isExpanded() ? 'pi-minus' : 'pi-plus' }}" label="{{ isExpanded() ? 'Contraer Todo' : 'Expandir Todo' }}" (click)="expandAll()"></button>
-      <div class="flex table-header"></div>
-    </ng-template>
-    <ng-template #header>
-      <tr>
-        <th style="width: 5rem"></th>
-        <th pSortableColumn="employee.name">Empleado <p-sortIcon field="employee.name" /></th>
-        <th pSortableColumn="state">Estado <p-sortIcon field="state" /></th>
-        <th pSortableColumn="formattedWorkedHours">Horas Trabajadas <p-sortIcon field="formattedWorkedHours" /></th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-summary let-expanded="expanded">
-      <tr>
-        <td>
-          <p-button type="button" pRipple [pRowToggler]="summary" [text]="true" [rounded]="true" [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-        </td>
-        <td>{{ summary.employee.name }}</td>
-        <td>
-          <p-tag [value]="summary.state" [severity]="getStateSeverity(summary.state)" />
-        </td>
-        <td>{{ summary.formattedWorkedHours }}</td>
-      </tr>
-    </ng-template>
-    <ng-template #expandedrow let-summary>
-      <tr>
-        <td colspan="4">
-          <div class="p-4">
-            <h5>Registros de Asistencia</h5>
-            <p-table [value]="summary.logs" dataKey="id">
-              <ng-template #header>
-                <tr>
-                  <th pSortableColumn="event_type">Evento <p-sortIcon field="event_type" /></th>
-                  <th pSortableColumn="occurred_at">Hora <p-sortIcon field="occurred_at" /></th>
-                  <th pSortableColumn="late_minutes">Minutos de Retraso <p-sortIcon field="late_minutes" /></th>
-                </tr>
-              </ng-template>
-              <ng-template #body let-log>
-                <tr>
-                  <td>
-                    <p-tag [value]="getEventTypeLabel(log.event_type)" [severity]="getEventTypeSeverity(log.event_type)" />
-                  </td>
-                  <td>{{ log.occurred_at | date: 'short' }}</td>
-                  <td>{{ log.late_minutes > 0 ? log.late_minutes : '-' }}</td>
-                </tr>
-              </ng-template>
-              <ng-template #emptymessage>
-                <tr>
-                  <td colspan="4">No hay registros de asistencia para este empleado.</td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+<section class="p-4 bg-gray-50">
+  <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="font-semibold text-xl mb-4">Resumen Diario de Empleados</h2>
+    <div class="overflow-x-auto">
+      <p-table [rows]="10" [showGridlines]="true" [paginator]="true" [value]="dailySummary()" dataKey="employee.id"
+               [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
+        <ng-template #caption>
+          <button pButton icon="pi pi-fw {{ isExpanded() ? 'pi-minus' : 'pi-plus' }}"
+                  (click)="expandAll()">{{ isExpanded() ? 'Contraer Todo' : 'Expandir Todo' }}
+          </button>
+          <div class="flex table-header"></div>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th style="width: 5rem"></th>
+            <th pSortableColumn="employee.name">Empleado
+              <p-sortIcon field="employee.name"/>
+            </th>
+            <th pSortableColumn="state">Estado
+              <p-sortIcon field="state"/>
+            </th>
+            <th pSortableColumn="formattedWorkedHours">Horas Trabajadas
+              <p-sortIcon field="formattedWorkedHours"/>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-summary let-expanded="expanded">
+          <tr>
+            <td>
+              <p-button type="button" pRipple [pRowToggler]="summary" [text]="true" [rounded]="true" [plain]="true"
+                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"/>
+            </td>
+            <td>{{ summary.employee.name }}</td>
+            <td>
+              <p-tag [value]="summary.state" [severity]="getStateSeverity(summary.state)"/>
+            </td>
+            <td>{{ summary.formattedWorkedHours }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #expandedrow let-summary>
+          <tr>
+            <td colspan="4">
+              <div class="p-4">
+                <h5 class="mb-3">Registros de Asistencia</h5>
+                <div class="overflow-x-auto">
+                  <p-table [value]="summary.logs" dataKey="id" [tableStyle]="{ 'min-width': '40rem' }">
+                    <ng-template #header>
+                      <tr>
+                        <th pSortableColumn="event_type">Evento
+                          <p-sortIcon field="event_type"/>
+                        </th>
+                        <th pSortableColumn="occurred_at">Hora
+                          <p-sortIcon field="occurred_at"/>
+                        </th>
+                        <th pSortableColumn="late_minutes">Minutos de Retraso
+                          <p-sortIcon field="late_minutes"/>
+                        </th>
+                      </tr>
+                    </ng-template>
+                    <ng-template #body let-log>
+                      <tr>
+                        <td>
+                          <p-tag [value]="getEventTypeLabel(log.event_type)"
+                                 [severity]="getEventTypeSeverity(log.event_type)"/>
+                        </td>
+                        <td>{{ log.occurred_at | date: 'short' }}</td>
+                        <td>{{ log.late_minutes > 0 ? log.late_minutes : '-' }}</td>
+                      </tr>
+                    </ng-template>
+                    <ng-template #emptymessage>
+                      <tr>
+                        <td colspan="4">No hay registros de asistencia para este empleado.</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</section>

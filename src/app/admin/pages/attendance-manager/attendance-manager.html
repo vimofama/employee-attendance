@@ -1,0 +1,175 @@
+<main class="p-4 bg-gray-50">
+  <p-toast/>
+  <p-confirmDialog />
+
+  <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="font-bold text-xl text-gray-800 mb-6">Gestión e Historial de Asistencias</h2>
+
+    <form [formGroup]="searchForm" (ngSubmit)="searchLogs()"
+          class="flex flex-wrap items-end gap-4 mb-6 bg-gray-100 p-4 rounded-lg">
+
+      <div class="flex flex-col gap-1 w-72">
+        <label class="text-sm font-semibold text-gray-700">Buscar Empleado</label>
+        <p-autoComplete
+          formControlName="employee"
+          [suggestions]="filteredEmployees()"
+          (completeMethod)="filterEmployees($event)"
+          optionLabel="name"
+          placeholder="Escribe código o nombre..."
+          inputStyleClass="w-full text-sm"
+          scrollHeight="16rem"
+          [dropdown]="true">
+          <ng-template let-emp #item>
+            <div class="flex flex-col py-0.5">
+              <span class="font-medium text-gray-800">{{ emp.name }}</span>
+              <span class="text-xs text-gray-500 font-mono">Cód: {{ emp.code }} | In: {{ emp.schedule_start }}</span>
+            </div>
+          </ng-template>
+        </p-autoComplete>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Fecha de Consulta</label>
+        <p-datePicker
+          formControlName="date"
+          dateFormat="dd/mm/yy"
+          [readonlyInput]="true"
+          [showIcon]="true"
+          [showButtonBar]="true"
+          variant="filled"
+          appendTo="body"
+          panelStyleClass="z-50">
+        </p-datePicker>
+      </div>
+
+      <p-button
+        type="submit"
+        icon="pi pi-search"
+        label="Consultar Historial">
+      </p-button>
+    </form>
+
+    <p-table
+      [value]="attendanceLogs()"
+      [loading]="loading()"
+      [showGridlines]="true"
+      size="small">
+
+      <ng-template #header>
+        <tr class="bg-gray-50 text-gray-700 font-bold text-sm">
+          <th>Evento / Marca</th>
+          <th>Hora Registrada</th>
+          <th>Atraso (Minutos)</th>
+          <th class="w-24 text-center">Auto Cierre</th>
+          <th class="w-32 text-center">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-log>
+        <tr class="text-gray-600 text-sm">
+          <td>
+            <span [ngClass]="{
+              'bg-green-100 text-green-800': log.event_type === 'WORK_START',
+              'bg-blue-100 text-blue-800': log.event_type === 'BREAK_START' || log.event_type === 'BREAK_END',
+              'bg-red-100 text-red-800': log.event_type === 'WORK_END'
+            }" class="px-2 py-1 rounded text-xs font-semibold">
+              {{ log.event_type }}
+            </span>
+          </td>
+
+          <td class="font-mono font-medium text-gray-700">
+            {{ log.occurred_at | date: 'HH:mm:ss' }}
+          </td>
+
+          <td>
+            @if (log.late_minutes > 0) {
+              <span class="text-red-600 font-medium font-mono">{{ log.late_minutes }} min</span>
+            } @else {
+              <span class="text-gray-400 font-mono">-</span>
+            }
+          </td>
+
+          <td class="text-center">
+            <i class="pi"
+               [ngClass]="{'pi-check-circle text-orange-500': log.is_auto_close === 1, 'pi-minus text-gray-300': log.is_auto_close !== 1}"></i>
+          </td>
+
+          <td class="text-center flex justify-center gap-2">
+            <p-button
+              size="small"
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="openEditDialog(log)"
+              title="Editar hora">
+            </p-button>
+            <p-button
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteLog($event,log.id)"
+              title="Eliminar marca">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center p-6 text-gray-400">
+            No se encontraron registros de asistencia para los filtros seleccionados.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</main>
+
+<p-dialog
+  header="Modificar Hora de Registro"
+  [modal]="true"
+  [(visible)]="visibleDialog"
+  [style]="{ width: '400px' }"
+  appendTo="body"
+  [focusOnShow]="false"
+  [baseZIndex]="10000">
+
+  @if (selectedLog()) {
+    <div class="mb-4 bg-blue-50 p-3 rounded text-sm text-blue-800">
+      <p><strong>Evento:</strong> {{ selectedLog()?.event_type }}</p>
+      <p><strong>Hora Original:</strong> {{ selectedLog()?.occurred_at | date: 'HH:mm:ss' }}</p>
+    </div>
+  }
+
+  <form [formGroup]="editForm" (ngSubmit)="onSaveEdit($event)" class="space-y-6 pt-2">
+    <div class="flex flex-col gap-2">
+      <label for="editTime" class="font-bold text-sm text-gray-700">Nueva Hora de Asistencia</label>
+      <p-datePicker
+        id="editTime"
+        formControlName="time"
+        [timeOnly]="true"
+        [hourFormat]="'24'"
+        inputStyleClass="w-full text-center font-mono text-lg"
+        appendTo="body"
+        panelStyleClass="z-50">
+      </p-datePicker>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+      <p-button
+        label="Cancelar"
+        severity="danger"
+        [outlined]="true"
+        (click)="visibleDialog.set(false)">
+      </p-button>
+      <p-button
+        type="submit"
+        label="Guardar Cambios"
+        icon="pi pi-check"
+        class="p-button-primary">
+      </p-button>
+    </div>
+  </form>
+</p-dialog>

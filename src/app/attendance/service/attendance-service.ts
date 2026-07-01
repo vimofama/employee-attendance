@@ -22,14 +22,11 @@ export class AttendanceService {
       throw new Error('Empleado inactivo no puede registrar asistencia.');
 
     const now = new Date();
-    // yyyy-MM-dd para buscar en la BD
     const todayDateStr = format(now, 'yyyy-MM-dd');
     const todayLogs = await this.getLogsForDay(employee.id, todayDateStr);
 
-    // 1. Validar Secuencia
     this.validateSequence(todayLogs, eventType);
 
-    // 2. Calcular Retraso (Solo en WORK_START)
     let lateMinutes = 0;
     if (eventType === 'WORK_START') {
       lateMinutes = this.calculateLateness(employee, now);
@@ -69,10 +66,8 @@ export class AttendanceService {
   }
 
   public calculateLateness(employee: Employee, checkInTime: Date): number {
-    // Convierte el HH:mm de schedule_start en un objeto Date correspondiente al día actual
     const scheduledTime = parse(employee.schedule_start, 'HH:mm', checkInTime);
 
-    // date-fns compara checkInTime vs scheduledTime
     const diffMinutes = differenceInMinutes(checkInTime, scheduledTime);
 
     return diffMinutes > employee.late_tolerance ? diffMinutes : 0;

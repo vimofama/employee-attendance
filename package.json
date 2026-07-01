@@ -1,6 +1,6 @@
 {
   "name": "tauri-employee-control",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,6 +21,7 @@
     "@primeuix/themes": "^2.0.3",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-sql": "~2.4.0",
+    "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.9",

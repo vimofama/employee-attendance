@@ -1,4 +1,4 @@
-import { OnInit, Service, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 
 import Database from '@tauri-apps/plugin-sql';
 
@@ -7,17 +7,15 @@ export class DatabaseService{
   isReady = signal<boolean>(false);
   db!: Database;
 
-  constructor() {
-    this.initDatabase();
-  }
+  async initDatabase(): Promise<Database> {
+    if (this.isReady()) return this.db;
 
-  private async initDatabase() {
     try {
       this.db = await Database.load('sqlite:test.db');
       this.isReady.set(true);
-      console.log('Database initialized successfully');
+      return this.db;
     } catch (e) {
-      console.log('Error initializing database:', e);
+      throw new Error(`Failed to load database: ${e}`);
     }
   }
 }

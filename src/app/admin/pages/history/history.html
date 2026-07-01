@@ -1,38 +1,52 @@
-<main>
-  <p-toast />
-  <div class="mt-2">
-    <p-table #dt [value]="summary()" [columns]="cols" [tableStyle]="{'min-width': '50rem'}" [loading]="loading()">
-      <ng-template #caption class="flex items-center">
-        <form [formGroup]="form" class="flex items-center justify-center gap-1">
-          <div>
-            <label class="mr-2 font-bold">Horas Base</label>
-            <p-inputNumber formControlName="defaultBaseHours"/>
+<section class="p-4 bg-gray-50">
+  <p-toast/>
+  <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="font-semibold text-xl mb-4">Resumen</h2>
+    <div class="overflow-x-auto">
+      <p-table #dt [value]="summary()" [columns]="cols" [showGridlines]="true" [tableStyle]="{'min-width': '50rem'}"
+               [loading]="loading()">
+        <ng-template #caption class="flex items-center">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 w-full">
+            <form [formGroup]="form" class="flex flex-wrap items-end gap-2">
+              <div>
+                <label class="mr-2 font-bold">Horas Base</label>
+                <p-inputNumber inputStyleClass="w-14" formControlName="defaultBaseHours"/>
+              </div>
+              <div>
+                <label class="mr-2 font-bold">Fecha</label>
+                <p-datePicker formControlName="date" view="month" dateFormat="mm/yy" placeholder="mm/yy"
+                              [readonlyInput]="true" [showIcon]="true" variant="filled" appendTo="body"
+                              panelStyleClass="z-50"/>
+              </div>
+              <div>
+                <label class="mr-2 font-bold">Semanas</label>
+                <div class="card flex justify-center">
+                  <p-selectbutton [options]="weeksOptions" formControlName="value" [multiple]="true"
+                                  optionLabel="name"></p-selectbutton>
+                </div>
+              </div>
+              <p-button icon="pi pi-search" (click)="loadSummary()"/>
+            </form>
+            <p-button icon="pi pi-upload" label="Export" (click)="exportCSV()" (invalid)="true"/>
           </div>
-          <div>
-            <label class="mr-2 font-bold">Fecha</label>
-            <p-datePicker formControlName="date" view="month" dateFormat="mm/yy"
-                          [readonlyInput]="true"/>
-          </div>
-          <p-button icon="pi pi-search" (click)="loadSummary()"/>
-        </form>
-        <p-button icon="pi pi-upload" label="Export" (click)="exportCSV()" (invalid)="true" />
-      </ng-template>
-      <ng-template #header>
-        <tr class="font-bold">
-          <th>Nombre</th>
-          <th>Horas</th>
-          <th>Horas Extras</th>
-          <th>Valor</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-summary>
-        <tr>
-          <td>{{ summary.employeeName }}</td>
-          <td>{{ summary.horasMes | number: '3.1-2' }}</td>
-          <td>{{ summary.horasExtras | number: '2.1-2' }}</td>
-          <td>{{ summary.valor | currency }}</td>
-        </tr>
-      </ng-template>
-    </p-table>
+        </ng-template>
+        <ng-template #header>
+          <tr class="font-bold">
+            <th>Nombre</th>
+            <th>Horas</th>
+            <th>Horas Extras</th>
+            <th>Valor</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-summary>
+          <tr>
+            <td>{{ summary.employeeName }}</td>
+            <td>{{ summary.horasMes | number: '3.1-2' }}</td>
+            <td>{{ summary.horasExtras | number: '2.1-2' }}</td>
+            <td>{{ summary.valor | currency }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
-</main>
+</section>

@@ -10,6 +10,7 @@ import { Button } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { InputNumber } from 'primeng/inputnumber';
 import { Toast } from 'primeng/toast';
+import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-history',
@@ -24,6 +25,7 @@ import { Toast } from 'primeng/toast';
     InputNumber,
     ReactiveFormsModule,
     Toast,
+    SelectButton,
   ],
   templateUrl: './history.html',
   providers: [MessageService],
@@ -36,10 +38,12 @@ export class History {
   @ViewChild('dt') dt!: Table;
 
   loading = signal<boolean>(false);
+  weeksOptions = [{ name: '1', value: 1 }, { name: '2', value: 2 }, { name: '3', value: 3 }, { name: '4', value: 4 }];
 
   form = this.fb.nonNullable.group({
     defaultBaseHours: [160],
     date: [new Date()],
+    value: [[]],
   });
 
   summary = signal<OvertimeSummary[]>([]);
@@ -54,11 +58,15 @@ export class History {
   async loadSummary() {
     try {
       if (this.form.valid) {
-        const { defaultBaseHours, date } = this.form.getRawValue();
+        const { defaultBaseHours, date, value } = this.form.getRawValue();
+        // @ts-ignore
+        const weeks = value.map((v: any) => v.value);
+        console.log(weeks);
         const reportConfig: ReportConfig = {
           defaultBaseHours,
           month: getMonth(date) + 1,
           year: getYear(date),
+          weeks,
         };
         this.loading.set(true);
         const report = await this.service.getMonthlyOvertimeReport(reportConfig);

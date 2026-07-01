@@ -17,7 +17,6 @@ import { TagModule } from 'primeng/tag';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService, MessageService } from 'primeng/api';
 import { DailySummary, DashboardService } from '@app/admin/service/dashboard-service';
 import {ObjectUtils} from "primeng/utils";
 
@@ -44,12 +43,9 @@ import {ObjectUtils} from "primeng/utils";
     ConfirmDialogModule,
   ],
   templateUrl: './dashboard.html',
-  providers: [MessageService, ConfirmationService],
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
-  private readonly messageService = inject(MessageService);
-  private readonly confirmationService = inject(ConfirmationService);
 
   dailySummary = signal<DailySummary[]>([]);
   expandedRows = {};

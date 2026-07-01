@@ -9,13 +9,13 @@ export const routes: Routes = [
   {
     path: 'admin',
     loadChildren: () => import('./admin/admin.routes').then((m) => m.routes),
-    // canActivate: [roleGuard],
+    canActivate: [roleGuard],
     data: {roles: ['admin']}
   },
   {
     path: 'local',
     loadChildren: () => import('./attendance/attendance.routes').then((m) => m.routes),
-    // canActivate: [roleGuard],
+    canActivate: [roleGuard],
     data: {roles: ['admin', 'local']}
   },
   {

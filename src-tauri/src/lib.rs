@@ -21,6 +21,18 @@ pub fn run() {
       description: "add_employee_user",
       sql: "INSERT INTO users (username, password_hash, role) VALUES('local', 'local', 'LOCAL')",
       kind: MigrationKind::Up,
+    },
+    Migration {
+      version: 4,
+      description: "update_admin_password_to_bcrypt",
+      sql: "UPDATE users SET password_hash = '$2a$10$MgEqb9nEQURKWk3JxvMJv.1Rjqmx/B0Id3MqN6Qhp0ctGAhvjcHHS' WHERE username = 'admin'",
+      kind: MigrationKind::Up,
+    },
+    Migration {
+      version: 5,
+      description: "update_local_password_to_bcrypt",
+      sql: "UPDATE users SET password_hash = '$2a$10$ZuD/XVxWxaH9GtJuAglBxO8SVxzvqEmyrmCrAl5L/wN1IOYRE9Pzy' WHERE username = 'local'",
+      kind: MigrationKind::Up,
     }
   ];
 

@@ -1,0 +1,17 @@
+<div class="flex h-screen w-full bg-gray-50 overflow-hidden">
+  <aside class="w-64 h-full bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+    <div class="p-4 font-bold text-lg text-gray-750 border-b border-gray-150">
+      Configuración
+    </div>
+    <div class="flex-1 overflow-y-auto p-2">
+      <p-menu [model]="items" styleClass="w-full border-none"/>
+    </div>
+  </aside>
+
+  <main class="flex-1 h-full overflow-y-auto p-6">
+    <div class="max-w-7xl mx-auto">
+      <router-outlet/>
+    </div>
+  </main>
+
+</div>

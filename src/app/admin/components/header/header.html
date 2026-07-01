@@ -1,23 +1,27 @@
-<header class="p-3">
-  <div class="flex justify-between items-center">
+<header class="text-white bg-red-400 p-3 border-b border-surface-200 dark:border-surface-800">
+  <div class="flex flex-col sm:flex-row sm:justify-between gap-3 sm:items-center">
     <div>
-      <nav class="flex gap-1.5">
-        <a routerLink="/local" class="underline underline-offset-4 p-1"
-           routerLinkActive="decoration-red-400 decoration-4"
+      <nav class="flex flex-wrap gap-2 text-sm sm:text-base">
+        <a routerLink="/local" class="p-1"
+           routerLinkActive="underline underline-offset-4 decoration-white decoration-4"
            [routerLinkActiveOptions]="{exact:true}">Check-in</a>
-        <a routerLink="/admin" class="underline underline-offset-4 p-1"
-           routerLinkActive="decoration-red-400 decoration-4"
+        <a routerLink="/admin" class="p-1"
+           routerLinkActive="underline underline-offset-4 decoration-white decoration-4"
            [routerLinkActiveOptions]="{exact:true}">Dashboard</a>
-        <a routerLink="/admin/employees" class="underline underline-offset-4 p-1"
-           routerLinkActive="decoration-red-400 decoration-4"
-           [routerLinkActiveOptions]="{exact:true}">Employees</a>
-        <a routerLink="/admin/history" class="underline underline-offset-4 p-1"
-           routerLinkActive="decoration-red-400 decoration-4"
-           [routerLinkActiveOptions]="{exact:true}">History</a>
+        <a routerLink="/admin/employees" class="p-1"
+           routerLinkActive="underline underline-offset-4 decoration-white decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Empleados</a>
+        <a routerLink="/admin/history" class="p-1"
+           routerLinkActive="underline underline-offset-4 decoration-white decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Historial</a>
+        <a routerLink="/admin/attendance-manager" class="p-1"
+           routerLinkActive="underline underline-offset-4 decoration-white decoration-4"
+           [routerLinkActiveOptions]="{exact:true}">Attendance Manager</a>
       </nav>
     </div>
-    <div>
-      <p-button icon="pi pi-sign-out" variant="outlined" severity="danger" label="Salir" (click)="logOut()"></p-button>
+    <div class="flex gap-2 items-center self-start sm:self-auto">
+      <p-button class="bg-white rounded-full" icon="pi pi-cog" [rounded]="true" [text]="true" severity="secondary" [raised]="true" (click)="moveToConfig()"></p-button>
+      <p-button icon="pi pi-sign-out" severity="danger" label="Salir" (click)="logOut()"></p-button>
     </div>
   </div>
 </header>
