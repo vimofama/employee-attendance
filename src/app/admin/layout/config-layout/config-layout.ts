@@ -27,5 +27,16 @@ export class ConfigLayout {
         },
       ],
     },
+    {
+      label: 'Sistema',
+      items: [
+        {
+          label: 'Inicio Automático',
+          icon: 'pi pi-cog',
+          routerLink: '/admin/config/autostart',
+          routerLinkActiveOptions: { exact: true },
+        },
+      ],
+    },
   ];
 }

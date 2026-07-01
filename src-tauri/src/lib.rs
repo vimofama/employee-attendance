@@ -2,7 +2,7 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  let migrations = vec![
+    let migrations = vec![
     // Define your migrations here
     Migration {
       version: 1,
@@ -36,12 +36,12 @@ pub fn run() {
     }
   ];
 
-
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(
-          tauri_plugin_sql::Builder::new()
-            .add_migrations("sqlite:test.db", migrations)
-            .build()
+            tauri_plugin_sql::Builder::new()
+                .add_migrations("sqlite:test.db", migrations)
+                .build(),
         )
         .setup(|app| {
             if cfg!(debug_assertions) {

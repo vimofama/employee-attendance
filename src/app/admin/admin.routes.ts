@@ -7,6 +7,7 @@ import { ConfigLayout } from '@app/admin/layout/config-layout/config-layout';
 import { AdminPassword } from '@app/admin/pages/admin-password/admin-password';
 import { LocalPassword } from '@app/admin/pages/local-password/local-password';
 import { AttendanceManager } from '@app/admin/pages/attendance-manager/attendance-manager';
+import { Autostart } from '@app/admin/pages/autostart/autostart';
 
 export const routes: Routes = [
   {
@@ -27,7 +28,7 @@ export const routes: Routes = [
       },
       {
         path: 'attendance-manager',
-        component: AttendanceManager
+        component: AttendanceManager,
       },
       {
         path: 'config',
@@ -40,9 +41,13 @@ export const routes: Routes = [
           {
             path: 'local-password',
             component: LocalPassword,
-          }
-        ]
-      }
+          },
+          {
+            path: 'autostart',
+            component: Autostart,
+          },
+        ],
+      },
     ],
   },
 ];
