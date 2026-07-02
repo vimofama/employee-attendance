@@ -28,63 +28,56 @@ export class Updater implements OnInit {
 
   /**
    * Ejecuta la comprobación de actualizaciones interactuando con los diálogos del S.O.
-   * @param onUserClick Define si fue disparado manualmente por el botón para mostrar el mensaje de "Al día"
+   * @param onUserClick Define si fue disparado manualmente por el botón
    */
   async checkForUpdates(onUserClick: boolean = false) {
     try {
       this.checking.set(true);
       const update = await check();
-      this.checking.set(false); // Apagamos el estado de carga del botón
+      this.checking.set(false);
 
-      // 1. Caso: El servidor no responde o el plugin falla
+      // 1. Caso: 'null' significa que estás en la última versión o el endpoint retornó vacío
       if (update === null) {
-        await message(
-          'No se pudo verificar la existencia de actualizaciones.\nPor favor, inténtalo más tarde.',
-          {
-            title: 'Error de Conexión',
-            kind: 'error',
-            okLabel: 'Entendido',
-          },
-        );
+        if (onUserClick) {
+          await message('Ya te encuentras en la última versión estable del sistema. ¡Buen trabajo!', {
+            title: 'Sistema al Día',
+            kind: 'info',
+            okLabel: 'Excelente',
+          });
+        }
         return;
       }
 
-      // 2. Caso: Hay una actualización disponible
-      if (update.available) {
-        const releaseNotes = update.body ? `\n\nNotas de la versión:\n${update.body}` : '';
+      // 2. Caso: Si 'update' NO es null, hay una actualización lista
+      const releaseNotes = update.body ? `\n\nNotas de la versión:\n${update.body}` : '';
 
-        // Lanzamos el diálogo nativo de confirmación (SÍ/NO)
-        const s_update = await ask(
-          `¡Una nueva versión (v${update.version}) está disponible!${releaseNotes}\n\n¿Deseas descargar e instalar la actualización ahora?`,
-          {
-            title: 'Actualización Disponible',
-            kind: 'info',
-            okLabel: 'Actualizar',
-            cancelLabel: 'Más tarde',
-          },
-        );
-
-        // Si el usuario acepta, procedemos con la descarga inline
-        if (s_update) {
-          await this.executeDownloadAndInstall(update);
-        }
-      }
-      // 3. Caso: El usuario buscó manualmente pero ya está en la última versión
-      else if (onUserClick) {
-        await message('Ya te encuentras en la última versión estable del sistema. ¡Buen trabajo!', {
-          title: 'Sistema al Día',
+      // Lanzamos el diálogo nativo de confirmación
+      const s_update = await ask(
+        `¡Una nueva versión (v${update.version}) está disponible!${releaseNotes}\n\n¿Deseas descargar e instalar la actualización ahora?`,
+        {
+          title: 'Actualización Disponible',
           kind: 'info',
-          okLabel: 'Excelente',
-        });
+          okLabel: 'Actualizar',
+          cancelLabel: 'Más tarde',
+        },
+      );
+
+      if (s_update) {
+        await this.executeDownloadAndInstall(update);
       }
-    } catch (err) {
+
+    } catch (err: any) {
       this.checking.set(false);
-      await message('Ocurrió un error inesperado al procesar la actualización.', {
-        title: 'Error Crítico',
+
+      // Captura el mensaje de error explícito (ej: Firma inválida, error 404, etc.)
+      const errMsg = err?.message || JSON.stringify(err) || 'Error desconocido';
+
+      await message(`Ocurrió un error al procesar la actualización.\n\nDetalle: ${errMsg}`, {
+        title: 'Error de Actualización',
         kind: 'error',
         okLabel: 'Cerrar',
       });
-      console.error(err);
+      console.error('Update Error:', err);
     }
   }
 
@@ -117,7 +110,6 @@ export class Updater implements OnInit {
         }
       });
 
-      // Notificación nativa de éxito antes del reinicio
       await message(
         'La actualización ha sido instalada de forma exitosa.\nLa aplicación se reiniciará automáticamente.',
         {
@@ -127,11 +119,12 @@ export class Updater implements OnInit {
         },
       );
 
-      // Forzamos el reinicio inmediato a través del plugin de procesos de Tauri
       await relaunch();
-    } catch (err) {
+    } catch (err: any) {
       this.downloading.set(false);
-      await message('Fallo la descarga o escritura de los paquetes del sistema.', {
+      const errMsg = err?.message || 'Fallo en la escritura de paquetes';
+
+      await message(`Fallo la descarga o escritura de los paquetes del sistema.\nDetalle: ${errMsg}`, {
         title: 'Error de Instalación',
         kind: 'error',
         okLabel: 'OK',
