@@ -8,6 +8,7 @@ import { AdminPassword } from '@app/admin/pages/admin-password/admin-password';
 import { LocalPassword } from '@app/admin/pages/local-password/local-password';
 import { AttendanceManager } from '@app/admin/pages/attendance-manager/attendance-manager';
 import { Autostart } from '@app/admin/pages/autostart/autostart';
+import { Updater } from '@app/admin/pages/updater/updater';
 
 export const routes: Routes = [
   {
@@ -46,6 +47,10 @@ export const routes: Routes = [
             path: 'autostart',
             component: Autostart,
           },
+          {
+            path: 'updater',
+            component: Updater,
+          }
         ],
       },
     ],

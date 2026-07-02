@@ -36,6 +36,12 @@ export class ConfigLayout {
           routerLink: '/admin/config/autostart',
           routerLinkActiveOptions: { exact: true },
         },
+        {
+          label: 'Actualizaciones',
+          icon: 'pi pi-refresh',
+          routerLink: '/admin/config/updater',
+          routerLinkActiveOptions: { exact: true },
+        },
       ],
     },
   ];
