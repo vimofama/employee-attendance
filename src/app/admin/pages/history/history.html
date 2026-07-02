@@ -7,19 +7,19 @@
                [loading]="loading()">
         <ng-template #caption class="flex items-center">
           <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 w-full">
-            <form [formGroup]="form" class="flex flex-wrap items-end gap-2">
-              <div>
-                <label class="mr-2 font-bold">Horas Base</label>
+            <form [formGroup]="form" class="flex flex-wrap items-end gap-2.5">
+              <div class="flex flex-col gap-1">
+                <label class="text-sm font-semibold text-gray-700">Horas Base</label>
                 <p-inputNumber inputStyleClass="w-14" formControlName="defaultBaseHours"/>
               </div>
-              <div>
-                <label class="mr-2 font-bold">Fecha</label>
+              <div class="flex flex-col gap-1">
+                <label class="text-sm font-semibold text-gray-700">Fecha</label>
                 <p-datePicker formControlName="date" view="month" dateFormat="mm/yy" placeholder="mm/yy"
                               [readonlyInput]="true" [showIcon]="true" variant="filled" appendTo="body"
                               panelStyleClass="z-50"/>
               </div>
-              <div>
-                <label class="mr-2 font-bold">Semanas</label>
+              <div class="flex flex-col gap-1">
+                <label class="text-sm font-semibold text-gray-700">Semanas</label>
                 <div class="card flex justify-center">
                   <p-selectbutton [options]="weeksOptions" formControlName="value" [multiple]="true"
                                   optionLabel="name"></p-selectbutton>
